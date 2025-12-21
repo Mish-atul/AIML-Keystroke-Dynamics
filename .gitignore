@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local app state
+app/users/
+higher_acc_app/users/
+
+# Trained model artifacts (too large for GitHub)
+*.pkl
+*.h5
+
+# Training model artifacts
+model training/models/
+
+# Optional: ignore dataset if you don't want to ship it
+# model training/DSL-StrongPasswordData.csv

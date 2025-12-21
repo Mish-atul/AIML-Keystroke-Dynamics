@@ -1,0 +1,6 @@
+Model,Accuracy,Accuracy %,Training Time (s),AUC,EER,Notes
+Random Forest,0.9277,92.77%,2.83,0.9334,0.1486,"Ensemble method, interpretable"
+XGBoost,0.9453,94.53%,22.24,0.9475,0.1207,"Gradient boosting, high performance"
+HGBT,0.9422,94.22%,15.17,0.9434,0.1231,Fast histogram-based boosting
+MLP,0.9206,92.06%,45.44,0.9374,0.1329,"Deep neural network, 4 layers"
+1D CNN,0.9243,92.43%,94.00,0.9322,0.1334,"Convolutional NN, sequence-based"

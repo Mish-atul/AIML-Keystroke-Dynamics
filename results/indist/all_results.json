@@ -1,0 +1,58 @@
+{
+  "Encoder (50ep) Centroid": {
+    "auc": 0.9875288991413559,
+    "eer": 0.03921568627450979
+  },
+  "Encoder (50ep) + Adapter (k=5)": {
+    "auc": 0.9893264129181084,
+    "eer": 0.03774509803921568,
+    "genuine_mean": 0.7931547195413241,
+    "impostor_mean": 0.1510290774834963,
+    "n_genuine": 1020,
+    "n_impostor": 5100
+  },
+  "Encoder (50ep) + Adapter (k=10)": {
+    "auc": 0.9904817377931565,
+    "eer": 0.03970588235294116,
+    "genuine_mean": 0.8060060756774071,
+    "impostor_mean": 0.07953382849519816,
+    "n_genuine": 1020,
+    "n_impostor": 5100
+  },
+  "Encoder (50ep) + NoResidual (k=10)": {
+    "auc": 0.9933958093041139,
+    "eer": 0.03313725490196078,
+    "genuine_mean": 0.8389087472768391,
+    "impostor_mean": -0.42731293508728196,
+    "n_genuine": 1020,
+    "n_impostor": 5100
+  },
+  "Encoder (100ep) Centroid": {
+    "auc": 0.9944049724464948,
+    "eer": 0.03261437908496732
+  },
+  "Encoder (100ep) + Adapter (k=5)": {
+    "auc": 0.9926322568242983,
+    "eer": 0.02813725490196079,
+    "genuine_mean": 0.7964478284084037,
+    "impostor_mean": 0.18043123069977132,
+    "n_genuine": 1020,
+    "n_impostor": 5100
+  },
+  "Encoder (100ep) + Adapter (k=10)": {
+    "auc": 0.9927993079584776,
+    "eer": 0.034313725490196074,
+    "genuine_mean": 0.8039294645701553,
+    "impostor_mean": 0.10426874381006129,
+    "n_genuine": 1020,
+    "n_impostor": 5100
+  },
+  "Encoder (100ep) + NoResidual (k=10)": {
+    "auc": 0.9904750096116879,
+    "eer": 0.02549019607843138,
+    "genuine_mean": 0.8448111947698921,
+    "impostor_mean": -0.45921329088865176,
+    "n_genuine": 1020,
+    "n_impostor": 5100
+  }
+}

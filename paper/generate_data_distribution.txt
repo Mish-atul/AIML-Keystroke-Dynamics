@@ -1,0 +1,169 @@
+================================================================================
+FIGURE GENERATION PROMPT: Data Distribution Visualization
+================================================================================
+
+OBJECTIVE:
+Create a publication-quality histogram/bar chart showing the distribution of 
+typing samples in the CMU Keystroke Dynamics Benchmark dataset.
+
+================================================================================
+DATA DETAILS:
+================================================================================
+- Dataset file: cmu_keystroke.csv (located in project root)
+- Column for user ID: 'subject'
+- Total: 51 users (subjects s002-s057, with some gaps)
+- Each user: 400 typing samples collected over 8 sessions (~50 samples/session)
+- Password typed: ".tie5Roanl" (11 keystrokes)
+- Total samples: 20,400
+
+================================================================================
+REQUIRED PLOT ELEMENTS:
+================================================================================
+1. X-axis: User Index (1-51 for cleaner look, or actual IDs s002-s057)
+2. Y-axis: Number of samples per user (should all be ~400)
+3. Color: Professional color - IEEE blue (#0066CC) or dark teal (#2E8B8B)
+4. Horizontal dashed line at y=400 showing expected count
+5. Optional: Session distribution as stacked bars (8 colors for 8 sessions)
+
+================================================================================
+STYLING REQUIREMENTS (IEEE Access format):
+================================================================================
+- Figure size: 7 inches width × 2.5-3 inches height (double column)
+- Font: Times New Roman or similar serif, 8-10pt for labels
+- DPI: 300 minimum (use 600 for best print quality)
+- White background, minimal or no grid
+- Clear axis labels: "User Index" and "Number of Samples"
+- Remove title (caption will handle it in the paper)
+- Tight layout with no wasted whitespace
+
+================================================================================
+PYTHON CODE TO GENERATE:
+================================================================================
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib
+import numpy as np
+
+# Set publication-quality style
+matplotlib.rcParams['font.family'] = 'serif'
+matplotlib.rcParams['font.serif'] = ['Times New Roman']
+matplotlib.rcParams['font.size'] = 9
+matplotlib.rcParams['axes.linewidth'] = 0.8
+matplotlib.rcParams['xtick.major.width'] = 0.8
+matplotlib.rcParams['ytick.major.width'] = 0.8
+
+# Load data
+df = pd.read_csv('cmu_keystroke.csv')
+
+# Count samples per user
+samples_per_user = df.groupby('subject').size().sort_index()
+user_ids = samples_per_user.index.tolist()
+sample_counts = samples_per_user.values
+
+# Create figure
+fig, ax = plt.subplots(figsize=(7, 2.5))
+
+# Bar plot
+bars = ax.bar(range(len(samples_per_user)), sample_counts, 
+              color='#2E8B8B', edgecolor='none', width=0.8)
+
+# Add expected line
+ax.axhline(y=400, color='#CC0000', linestyle='--', linewidth=1.2, 
+           label='Expected (400 samples)')
+
+# Formatting
+ax.set_xlabel('User Index', fontsize=10)
+ax.set_ylabel('Number of Samples', fontsize=10)
+ax.set_xlim(-0.5, len(samples_per_user) - 0.5)
+ax.set_ylim(0, 450)
+
+# X-axis ticks (show every 5th user)
+ax.set_xticks(range(0, len(samples_per_user), 5))
+ax.set_xticklabels([str(i+1) for i in range(0, len(samples_per_user), 5)])
+
+# Add legend
+ax.legend(loc='upper right', frameon=True, fontsize=8)
+
+# Remove top and right spines
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# Tight layout and save
+plt.tight_layout()
+plt.savefig('paper/figures/data_distribution.png', dpi=300, bbox_inches='tight',
+            facecolor='white', edgecolor='none')
+plt.savefig('paper/figures/data_distribution.pdf', bbox_inches='tight',
+            facecolor='white', edgecolor='none')
+print("Figure saved to paper/figures/data_distribution.png")
+plt.show()
+```
+
+================================================================================
+ALTERNATIVE: SESSION-BASED STACKED BAR CHART
+================================================================================
+
+If you want to show the session distribution (8 sessions per user):
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib
+import numpy as np
+
+matplotlib.rcParams['font.family'] = 'serif'
+matplotlib.rcParams['font.size'] = 9
+
+df = pd.read_csv('cmu_keystroke.csv')
+
+# Group by subject and sessionIndex
+session_counts = df.groupby(['subject', 'sessionIndex']).size().unstack(fill_value=0)
+
+# Create stacked bar chart
+fig, ax = plt.subplots(figsize=(7, 3))
+
+# Color palette for 8 sessions
+colors = plt.cm.Blues(np.linspace(0.3, 0.9, 8))
+
+# Plot stacked bars
+bottom = np.zeros(len(session_counts))
+for i, session in enumerate(session_counts.columns):
+    ax.bar(range(len(session_counts)), session_counts[session], 
+           bottom=bottom, color=colors[i], label=f'Session {session+1}', 
+           edgecolor='none', width=0.8)
+    bottom += session_counts[session].values
+
+ax.set_xlabel('User Index', fontsize=10)
+ax.set_ylabel('Number of Samples', fontsize=10)
+ax.set_xlim(-0.5, len(session_counts) - 0.5)
+ax.legend(loc='upper right', ncol=4, fontsize=7, frameon=True)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+plt.tight_layout()
+plt.savefig('paper/figures/data_distribution.png', dpi=300, bbox_inches='tight')
+print("Stacked session figure saved!")
+plt.show()
+```
+
+================================================================================
+CAPTION FOR PAPER (LaTeX):
+================================================================================
+
+\caption{Distribution of typing samples across users in the CMU Keystroke 
+Dynamics Benchmark. Each of the 51 users contributed 400 samples across 8 
+sessions, totaling 20,400 password entries of ``.tie5Roanl''.}
+
+================================================================================
+EXECUTION INSTRUCTIONS:
+================================================================================
+
+1. Open terminal in the project root directory (where cmu_keystroke.csv is)
+2. Make sure you have matplotlib and pandas installed:
+   pip install matplotlib pandas numpy
+3. Run the script:
+   python generate_data_distribution.py
+4. The figure will be saved to paper/figures/data_distribution.png
+
+================================================================================

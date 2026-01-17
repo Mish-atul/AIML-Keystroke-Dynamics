@@ -1,0 +1,290 @@
+================================================================================
+FIGURE GENERATION PROMPT: Two-Stage Architecture Diagram
+================================================================================
+
+OBJECTIVE:
+Create a professional system architecture diagram showing the two-stage 
+contrastive learning framework for keystroke dynamics authentication.
+
+================================================================================
+ARCHITECTURE OVERVIEW (ASCII Reference):
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    STAGE 1: ENCODER PRETRAINING                             │
+│                    (Supervised Contrastive Learning)                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐                                                            │
+│  │ Training    │     ┌────────────────────────────────────────┐             │
+│  │ Users       │     │           1D-CNN ENCODER               │             │
+│  │ (N=36)      │     │                                        │             │
+│  ├─────────────┤     │  Input: (batch, 11, 3)                 │             │
+│  │ User A      │────▶│  ┌─────────────────────────────────┐   │             │
+│  │ 400 samples │     │  │ Conv1D(3→64, k=3)               │   │             │
+│  ├─────────────┤     │  │ BatchNorm + ReLU + MaxPool(2)   │   │             │
+│  │ User B      │────▶│  ├─────────────────────────────────┤   │    128-d    │
+│  │ 400 samples │     │  │ Conv1D(64→128, k=3)             │   │──▶Embedding │
+│  ├─────────────┤     │  │ BatchNorm + ReLU + MaxPool(2)   │   │             │
+│  │ User C      │────▶│  ├─────────────────────────────────┤   │             │
+│  │ 400 samples │     │  │ Conv1D(128→256, k=3)            │   │             │
+│  ├─────────────┤     │  │ BatchNorm + ReLU + GlobalAvgPool│   │             │
+│  │    ...      │     │  ├─────────────────────────────────┤   │             │
+│  │ (36 users)  │     │  │ Linear(256→128) + L2-Normalize  │   │             │
+│  └─────────────┘     │  └─────────────────────────────────┘   │             │
+│                      └────────────────────────────────────────┘             │
+│                                        │                                    │
+│                                        ▼                                    │
+│                      ┌────────────────────────────────────────┐             │
+│                      │      SUPERVISED CONTRASTIVE LOSS       │             │
+│                      │                                        │             │
+│                      │  • Positives: Same-user samples        │             │
+│                      │  • Negatives: Different-user samples   │             │
+│                      │  • Temperature τ = 0.07                │             │
+│                      │  • Pull same-user embeddings together  │             │
+│                      │  • Push different-user embeddings apart│             │
+│                      └────────────────────────────────────────┘             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        │ FROZEN ENCODER WEIGHTS
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    STAGE 2: PER-USER ADAPTER TRAINING                       │
+│                    (Few-Shot Enrollment)                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐    ┌──────────────┐    ┌──────────────────┐                │
+│  │ Enrollment  │    │   FROZEN     │    │  USER ADAPTER    │                │
+│  │ Samples     │───▶│   ENCODER    │───▶│                  │                │
+│  │ (k shots)   │    │   (fixed)    │    │  Linear(128→64)  │                │
+│  │             │    │              │    │  ReLU            │                │
+│  │ k = 1,3,5,10│    │  ~158K params│    │  Dropout(0.2)    │                │
+│  └─────────────┘    └──────────────┘    │  Linear(64→128)  │                │
+│                                         │                  │                │
+│                                         │  ~16.5K params   │                │
+│                                         └────────┬─────────┘                │
+│                                                  │                          │
+│                                                  ▼                          │
+│                      ┌────────────────────────────────────────┐             │
+│                      │           TRIPLET LOSS                 │             │
+│                      │                                        │             │
+│                      │  • Anchor: User's enrollment sample    │             │
+│                      │  • Positive: Same user (augmented)     │             │
+│                      │  • Negative: Different user sample     │             │
+│                      │  • Margin = 0.3                        │             │
+│                      └────────────────────────────────────────┘             │
+│                                                  │                          │
+│                                                  ▼                          │
+│                      ┌────────────────────────────────────────┐             │
+│                      │         USER CENTROID (Template)       │             │
+│                      │                                        │             │
+│                      │  centroid = mean(adapted_embeddings)   │             │
+│                      │  Stored for verification               │             │
+│                      └────────────────────────────────────────┘             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         VERIFICATION (Inference)                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌───────────┐  │
+│  │ Query       │    │   FROZEN     │    │   USER       │    │  COSINE   │  │
+│  │ Sample      │───▶│   ENCODER    │───▶│   ADAPTER    │───▶│ SIMILARITY│  │
+│  │             │    │              │    │   (frozen)   │    │           │  │
+│  └─────────────┘    └──────────────┘    └──────────────┘    └─────┬─────┘  │
+│                                                                   │        │
+│                                               ┌───────────────────┘        │
+│                                               ▼                            │
+│                      ┌────────────────────────────────────────┐            │
+│                      │     DECISION: sim(query, centroid) > θ │            │
+│                      │                                        │            │
+│                      │     θ = threshold (e.g., 0.5)          │            │
+│                      │     Accept if similarity > θ           │            │
+│                      │     Reject otherwise                   │            │
+│                      └────────────────────────────────────────┘            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+DETAILED COMPONENT SPECIFICATIONS:
+================================================================================
+
+1. INPUT REPRESENTATION:
+   - Keystroke timing matrix: (batch_size, 11 keys, 3 features)
+   - 11 keys: Each character in ".tie5Roanl"
+   - 3 features per key:
+     * H (Hold time): Key press duration
+     * DD (Down-Down): Time between consecutive key presses
+     * UD (Up-Down): Time from key release to next key press
+   - Total: 31 raw timing features (11×3 - 2 boundary conditions)
+
+2. ENCODER ARCHITECTURE:
+   Layer 1: Conv1D(in=3, out=64, kernel=3, padding=1)
+            → BatchNorm1D(64) → ReLU → MaxPool1D(2)
+   Layer 2: Conv1D(in=64, out=128, kernel=3, padding=1)
+            → BatchNorm1D(128) → ReLU → MaxPool1D(2)
+   Layer 3: Conv1D(in=128, out=256, kernel=3, padding=1)
+            → BatchNorm1D(256) → ReLU → GlobalAvgPool1D
+   Layer 4: Linear(256, 128) → L2-Normalize
+   
+   Total Parameters: ~158,000
+   Output: 128-dimensional unit-norm embedding
+
+3. SUPERVISED CONTRASTIVE LOSS (SupCon):
+   L = -1/|P(i)| × Σ_{p∈P(i)} log[ exp(z_i·z_p/τ) / Σ_{a∈A(i)} exp(z_i·z_a/τ) ]
+   
+   Where:
+   - P(i): Set of positive samples (same user as anchor i)
+   - A(i): All samples except anchor i
+   - τ = 0.07 (temperature parameter)
+   - z: L2-normalized embeddings
+
+4. ADAPTER ARCHITECTURE:
+   Input: 128-d frozen embedding
+   Layer 1: Linear(128, 64) → ReLU → Dropout(0.2)
+   Layer 2: Linear(64, 128)
+   Output: 128-d adapted embedding
+   
+   Total Parameters: ~16,576 per user
+   Note: No residual connection (best performance)
+
+5. TRIPLET LOSS:
+   L = max(0, ||f(a) - f(p)||² - ||f(a) - f(n)||² + margin)
+   
+   Where:
+   - a: Anchor (user's enrollment sample)
+   - p: Positive (same user, augmented)
+   - n: Negative (different user sample)
+   - margin = 0.3
+
+================================================================================
+COLOR SCHEME (Professional):
+================================================================================
+
+- Stage 1 blocks: Light blue (#E3F2FD) with blue border (#1976D2)
+- Stage 2 blocks: Light green (#E8F5E9) with green border (#388E3C)
+- Loss functions: Light orange (#FFF3E0) with orange border (#F57C00)
+- Verification: Light purple (#F3E5F5) with purple border (#7B1FA2)
+- Arrows: Dark gray (#424242)
+- Text: Black (#212121)
+
+================================================================================
+TOOLS TO CREATE THIS DIAGRAM:
+================================================================================
+
+OPTION 1: Draw.io (diagrams.net) - RECOMMENDED
+- Free, web-based: https://app.diagrams.net/
+- Export as PNG (300 DPI) or PDF
+- Use "Flowchart" or "Basic" shapes
+- Save source as .drawio for future edits
+
+OPTION 2: Lucidchart
+- Professional, some free features
+- Good for collaborative editing
+
+OPTION 3: Microsoft PowerPoint / Google Slides
+- Create using shapes and connectors
+- Export as high-resolution PNG (300 DPI)
+
+OPTION 4: Figma (free tier)
+- Modern, web-based design tool
+- Export as PNG or SVG
+
+OPTION 5: Python with matplotlib (for simple version)
+```python
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+
+# This creates a simplified version - full diagram better in Draw.io
+fig, ax = plt.subplots(figsize=(10, 8))
+# Add rectangles, arrows, and text programmatically
+# ... (complex code needed)
+```
+
+OPTION 6: LaTeX TikZ (for LaTeX purists)
+```latex
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning}
+% Complex TikZ code for diagram
+```
+
+================================================================================
+FIGURE SIZE AND FORMAT:
+================================================================================
+
+- Width: 7 inches (double-column IEEE format)
+- Height: 5-6 inches (tall enough to show both stages clearly)
+- Resolution: 300 DPI minimum (600 DPI for print)
+- Format: PNG (for submission) or PDF (for LaTeX)
+- Background: White
+- Font: Sans-serif (Arial, Helvetica), 8-10pt
+
+================================================================================
+CAPTION FOR PAPER (LaTeX):
+================================================================================
+
+\caption{Overview of the proposed two-stage framework for keystroke dynamics 
+authentication. \textbf{Stage 1}: A 1D-CNN encoder ($\sim$158K parameters) is 
+pretrained on 36 users using Supervised Contrastive Loss, learning to map 
+keystroke timing sequences to a discriminative 128-dimensional embedding space. 
+\textbf{Stage 2}: For each new user, a lightweight adapter ($\sim$16.5K parameters) 
+is trained on $k$ enrollment samples with Triplet Loss while the encoder remains 
+frozen. During verification, the cosine similarity between the query embedding 
+and stored user centroid determines authentication success.}
+
+================================================================================
+STEP-BY-STEP INSTRUCTIONS (Draw.io):
+================================================================================
+
+1. Go to https://app.diagrams.net/
+2. Select "Create New Diagram" → "Blank Diagram"
+3. Set page size: Custom 7" × 6" (or 700px × 600px at 100 DPI)
+
+4. CREATE STAGE 1 BOX:
+   - Draw large rounded rectangle
+   - Fill: #E3F2FD (light blue)
+   - Border: #1976D2 (blue), 2px
+   - Add header text: "STAGE 1: ENCODER PRETRAINING"
+
+5. ADD ENCODER BLOCK:
+   - Nested rectangle inside Stage 1
+   - Fill: White
+   - Border: #1976D2
+   - Add layer text (Conv1D, BatchNorm, etc.)
+
+6. ADD LOSS BLOCK:
+   - Rounded rectangle
+   - Fill: #FFF3E0 (light orange)
+   - Border: #F57C00 (orange)
+   - Text: "Supervised Contrastive Loss"
+
+7. CREATE STAGE 2 BOX:
+   - Similar to Stage 1, but green (#E8F5E9, #388E3C)
+   - Add Adapter block inside
+
+8. ADD ARROWS:
+   - Use "Connector" tool
+   - Style: Solid, with arrowhead
+   - Add "Frozen" label between stages
+
+9. ADD VERIFICATION BOX:
+   - Purple color scheme (#F3E5F5, #7B1FA2)
+   - Show similarity comparison
+
+10. EXPORT:
+    - File → Export as → PNG
+    - Set DPI to 300
+    - Save as "architecture.png"
+
+================================================================================
+SAVE LOCATION:
+================================================================================
+
+Save the generated figure to:
+paper/figures/architecture.png
+
+================================================================================

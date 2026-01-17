@@ -1,0 +1,7 @@
+Model,Setting,AUC,EER (%)
+Random Forest (baseline),Cross-user,0.800,26.3
+XGBoost (baseline),Cross-user,0.660,39.4
+Encoder (cross-user),Cross-user,0.897,17.7
+"Encoder (in-dist, centroid)",In-distribution,0.994,3.3
+Encoder + Adapter (k=5),In-distribution,0.993,2.8
+Encoder + NoResidual (k=10),In-distribution,0.991,2.6

@@ -1,0 +1,5 @@
+Model,Accuracy,Top-5 Acc,AUC,EER
+Encoder (no adapter),0.0000,0.0000,0.96327176,0.0990
+Encoder + Adapter,-,-,0.5432476514274691,0.4971
+Random Forest,0.2628,-,0.7965920840695204,0.2631
+XGBoost,0.3575,-,0.6614272022832335,0.3941

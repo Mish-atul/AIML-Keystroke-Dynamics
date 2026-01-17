@@ -1,0 +1,9 @@
+Model,AUC,EER
+Encoder (50ep) Centroid,0.9875,0.0392
+Encoder (50ep) + Adapter (k=5),0.9893,0.0377
+Encoder (50ep) + Adapter (k=10),0.9905,0.0397
+Encoder (50ep) + NoResidual (k=10),0.9934,0.0331
+Encoder (100ep) Centroid,0.9944,0.0326
+Encoder (100ep) + Adapter (k=5),0.9926,0.0281
+Encoder (100ep) + Adapter (k=10),0.9928,0.0343
+Encoder (100ep) + NoResidual (k=10),0.9905,0.0255

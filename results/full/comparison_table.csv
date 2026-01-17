@@ -1,0 +1,9 @@
+Model,AUC,EER,Accuracy
+Random Forest,0.0000,0.2631,0.2627777777777778
+XGBoost,0.0000,0.3941,0.3575
+Pilot (5 ep) (centroid),0.8984,0.1781,-
+Full (21 ep) (centroid),0.8974,0.1770,-
+Full + Adapter (k=1),0.3905,0.5733,-
+Full + Adapter (k=3),0.4372,0.5564,-
+Full + Adapter (k=5),0.4624,0.5220,-
+Full + Adapter (k=10),0.4467,0.5314,-

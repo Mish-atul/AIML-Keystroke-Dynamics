@@ -59,7 +59,7 @@ MERGE_MARGIN = 0.08  # Only merge if similarity > threshold + margin
 MIN_SAMPLES_FOR_MERGE = 3
 
 # Authentication config
-DEFAULT_THRESHOLD = 0.80
+DEFAULT_THRESHOLD = 0.90
 MIN_ENROLLMENT_SAMPLES = 5
 
 # =============================================================================
@@ -330,7 +330,7 @@ class UserProfile:
         self.enrollment_embeddings = [np.array(e, dtype=np.float32) for e in data['enrollment_embeddings']]
         self.centroid = np.array(data['centroid'], dtype=np.float32) if data['centroid'] else None
         self.raw_centroid = np.array(data['raw_centroid'], dtype=np.float32) if data.get('raw_centroid') else None
-        self.threshold = data.get('threshold', DEFAULT_THRESHOLD)
+        self.threshold = DEFAULT_THRESHOLD  # Always use current default, not saved value
         self.adapter_trained = data.get('adapter_trained', False)
         self.login_count = data.get('login_count', 0)
         self.merge_count = data.get('merge_count', 0)
@@ -593,13 +593,20 @@ class AuthEngine:
         similarity = self.compute_similarity(embed, profile.centroid)
         raw_similarity = self.compute_similarity(raw_embed, profile.raw_centroid) if profile.raw_centroid is not None else similarity
         
-        is_authentic = similarity >= profile.threshold
+        # Use RAW ENCODER similarity for authentication decision
+        # This prevents adapter overfitting and ensures genuine biometric match
+        is_authentic = raw_similarity >= profile.threshold
         
         return is_authentic, similarity, raw_similarity, embed, raw_embed, sequence
     
     def maybe_merge_login(self, profile, similarity, embed, sequence):
         """Merge successful high-confidence login into profile using EMA."""
         if profile is None:
+            return False
+        
+        # DISABLE EMA merge for adapter-trained profiles
+        # Adapters already provide personalization; EMA causes centroid drift
+        if profile.adapter_trained:
             return False
         
         # Only merge if significantly above threshold

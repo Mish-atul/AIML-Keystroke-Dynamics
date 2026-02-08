@@ -1,31 +1,68 @@
 \documentclass{ieeeaccess}
+
 \usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
+\usepackage{sectsty}
+\usepackage{float}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+
+\usepackage[colorlinks=true, urlcolor=blue, linkcolor=blue, citecolor=blue]{hyperref}
 \usepackage{graphicx}
 \usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\definecolor{orcidgreen}{HTML}{A6CE39}
+\usepackage{tabularx}
 \usepackage{multirow}
-\usepackage{url}
-\usepackage{hyperref}
+
+\newcommand{\orcidicon}{\raisebox{-0.1ex}{\textcolor{orcidgreen}{\textsf{\textbf{\footnotesize \textcircled{\tiny iD}}}}}}
+\newcommand{\orcidlink}[1]{\href{https://orcid.org/#1}{\orcidicon}}
+
+\sectionfont{\bfseries}
+\subsectionfont{\bfseries}
+\subsubsectionfont{\bfseries}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
+
 \history{Date of publication xxxx 00, 0000, date of current version xxxx 00, 0000.}
 \doi{10.1109/ACCESS.2024.XXXXXXX}
 
 \title{Keystroke Dynamics Authentication via Supervised Contrastive Learning and Per-User Adapters}
-\author{\uppercase{Author Name}\authorrefmark{1}}
 
-\address[1]{Department of Computer Science, University Name, City, Country (e-mail: author@university.edu)}
-\tfootnote{This work was conducted as part of research on behavioral biometric authentication systems.}
+\author{
+\uppercase{Atul~Kumar~Mishra}\authorrefmark{1}\orcidlink{0009-0007-9697-0261},
+\uppercase{Harsh~Sagar}\authorrefmark{1}\orcidlink{0009-0006-6097-2479},
+\uppercase{Amitnash~Gupta}\authorrefmark{1}\orcidlink{0009-0004-8299-5546},
+\uppercase{Dr.~Suma~B}\authorrefmark{2}\orcidlink{0000-0001-7337-1855},
+and
+\uppercase{Neethu~S}\authorrefmark{3}\orcidlink{0000-0002-8440-5229}
+}
+
+\address[1]{Department of Computer Science and Engineering, 
+Rashtreeya Vidyalaya College of Engineering (RVCE), 
+Bengaluru, Karnataka, India.}
+
+\address[2]{Department of Computer Science and Engineering, 
+Rashtreeya Vidyalaya College of Engineering (RVCE), 
+Bengaluru, Karnataka, India.}
+
+\address[3]{Department of Computer Science and Engineering, 
+Rashtreeya Vidyalaya College of Engineering (RVCE), 
+Bengaluru, Karnataka, India.}
+
+\corresp{Corresponding author: Atul~Kumar~Mishra (e-mail: atulkumarmishra.cy23@rvce.edu.in).}
 
 \markboth
-{Author: Keystroke Dynamics Authentication via Supervised Contrastive Learning}
-{Author: Keystroke Dynamics Authentication via Supervised Contrastive Learning}
+{Atul Kumar Mishra \headeretal: Keystroke Dynamics Authentication via Supervised Contrastive Learning and Per-User Adapters}
+{Atul Kumar Mishra \headeretal: Keystroke Dynamics Authentication via Supervised Contrastive Learning and Per-User Adapter
 
-\corresp{Corresponding author: Author Name (e-mail: author@university.edu).}
+
 
 \begin{abstract}
 We propose a two-stage framework for keystroke dynamics authentication that combines supervised contrastive pretraining with per-user adapter fine-tuning. In the first stage, a global 1D Convolutional Neural Network (CNN) encoder is trained using Supervised Contrastive Loss (SupCon) on the CMU Keystroke Dynamics Benchmark, learning generalizable keystroke embeddings that achieve an Area Under the Curve (AUC) of 0.90 for cross-user verification on unseen users. In the second stage, after user enrollment, a lightweight Multi-Layer Perceptron (MLP) adapter with approximately 16,000 parameters is trained on the user's enrollment samples to personalize the embedding space. This per-user adapter reduces the Equal Error Rate (EER) from 3.3\% (encoder-only with centroid matching) to 2.6\% for enrolled users. Our key insight is that per-user adapters serve a fundamentally different role than the global encoder: adapters are personalization modules effective only after enrollment, not generalization mechanisms designed for cross-user transfer. This separation enables both fast enrollment requiring only 5--10 keystroke samples and strong verification performance for continuous authentication scenarios. To the best of our knowledge, this is the first application of supervised contrastive learning to keystroke dynamics and the first two-stage framework explicitly separating generalization from personalization in behavioral biometrics.
@@ -142,18 +179,25 @@ We apply z-score normalization to all timing features using statistics computed 
 
 These augmentations create positive pairs for contrastive learning while preserving the essential typing characteristics.
 
-% Placeholder for data distribution figure
-\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/data_distribution.png}
-{Distribution of typing samples across users in the CMU Keystroke Dynamics Benchmark. Each user contributed 400 samples across 8 sessions.\label{fig:data_dist}}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{data_distribution.png}
+  \caption{Distribution of typing samples across users in the CMU Keystroke Dynamics Benchmark. Each user contributed 400 samples across 8 sessions.}
+  \label{fig:data_dist}
+\end{figure}
 
 \section{Proposed Methodology}
 \label{sec:methodology}
 
 Our framework consists of two stages: (1) supervised contrastive pretraining of a global encoder, and (2) per-user adapter fine-tuning after enrollment. Fig.~\ref{fig:architecture} illustrates the overall architecture.
 
-% Placeholder for architecture figure
-\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/architecture.png}
-{Overview of the proposed two-stage framework. Stage 1: A 1D-CNN encoder is pretrained with Supervised Contrastive Loss on all training users. Stage 2: Per-user adapters are trained on enrollment samples with the encoder frozen.\label{fig:architecture}}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{un2.png}
+  \caption{Overview of the proposed two-stage framework. \textbf{Stage 1}: A 1D-CNN encoder is pretrained with Supervised Contrastive Loss on all training users. \textbf{Stage 2}: Per-user adapters are trained on enrollment samples while the encoder remains frozen.}
+  \label{fig:architecture}
+\end{figure}
+
 
 \subsection{Supervised Contrastive Encoder}
 The encoder is a 1D Convolutional Neural Network that processes keystroke sequences of shape $(11, 3)$ and produces 128-dimensional L2-normalized embeddings.
@@ -337,21 +381,10 @@ Encoder + Adapter & 0.45 & 50.2\% \\
 
 The encoder-only approach achieves the best cross-user performance with AUC = 0.90 and EER = 17.7\%, substantially outperforming classical baselines. Notably, adapters \textit{degrade} cross-user performance, which is expected since adapters are trained on specific users and cannot generalize to unseen users.
 
-% Placeholder for ROC curve figure
 \begin{figure}[t]
   \centering
-  \includegraphics[
-    width=0.8\columnwidth,
-    height=0.45\textheight,
-    keepaspectratio
-  ]{roc_consolidated.png}
-
-  \vspace{4pt}
-  {\footnotesize
-  \parbox{\columnwidth}{
-  \textbf{Fig.~\ref{fig:roc_cross}.}
-  ROC curves for cross-user evaluation. The encoder-only approach (blue) substantially outperforms baseline methods.
-  }}
+  \includegraphics[width=\columnwidth]{roc_consolidated.png}
+  \caption{ROC curves for cross-user evaluation. The encoder-only approach (blue) substantially outperforms baseline methods.}
   \label{fig:roc_cross}
 \end{figure}
 
@@ -379,20 +412,11 @@ When evaluated on enrolled users, adapters provide significant improvement, redu
 
 \begin{figure}[t]
   \centering
-  \includegraphics[
-    width=0.8\columnwidth,
-    height=0.45\textheight,
-    keepaspectratio
-  ]{eer_vs_shots.png}
-
-  \vspace{4pt}
-  {\footnotesize
-  \parbox{\columnwidth}{
-  \textbf{Fig.~\ref{fig:eer_shots}.}
-  EER as a function of enrollment shots. Adapter-based methods consistently outperform centroid-only matching.
-  }}
+  \includegraphics[width=\columnwidth]{eer_vs_shots.png}
+  \caption{EER as a function of enrollment shots. Adapter-based methods consistently outperform centroid-only matching.}
   \label{fig:eer_shots}
 \end{figure}
+
 
 \subsection{Ablation Studies}
 
@@ -558,24 +582,13 @@ s019 & 1.4\% & 0.019 & s012 & 4.9\% & 0.064 \\
 
 \subsubsection{Learning Curve Analysis}
 The encoder was trained for 100 epochs with cosine annealing learning rate schedule. Training loss decreased from 3.99 to 1.91 over the training period, as shown in Fig.~\ref{fig:training_curves}. Validation loss plateaued around epoch 8 at approximately 4.97, indicating that the model's generalization capability stabilizes early while training loss continues to decrease.
-
-% Training curves figure
 \begin{figure}[t]
   \centering
-  \includegraphics[
-    width=0.8\columnwidth,
-    height=0.4\textheight,
-    keepaspectratio
-  ]{figures/training_curves.png}
-
-  \vspace{4pt}
-  {\footnotesize
-  \parbox{\columnwidth}{
-  \textbf{Fig.~\ref{fig:training_curves}.}
-  Training and validation loss curves over 100 epochs. Training loss decreases smoothly while validation loss plateaus early, indicating good generalization.
-  }}
+  \includegraphics[width=\columnwidth]{training_curves.png}
+  \caption{Training and validation loss curves over 100 epochs. The training loss decreases smoothly while the validation loss plateaus early, indicating good generalization.}
   \label{fig:training_curves}
 \end{figure}
+
 
 The gap between training and validation loss suggests mild overfitting to the training users, which is expected in contrastive learning where the model optimizes for user separation in the training set. However, the cross-user evaluation results confirm that the learned representations still generalize well to unseen users.
 
@@ -588,42 +601,25 @@ For the in-distribution evaluation with $k=10$ enrollment samples, we observe cl
 \item \textbf{Separation:} 14.6 standard deviations (d' = 14.6)
 \end{itemize}
 
-% Score distribution figure
 \begin{figure}[t]
   \centering
-  \includegraphics[
-    width=0.8\columnwidth,
-    height=0.4\textheight,
-    keepaspectratio
-  ]{figures/score_distributions.png}
-
-  \vspace{4pt}
-  {\footnotesize
-  \parbox{\columnwidth}{
-  \textbf{Fig.~\ref{fig:score_dist}.}
-  Distribution of cosine similarity scores for genuine (same-user) and impostor (different-user) pairs. The clear separation enables low EER authentication.
-  }}
+  \includegraphics[width=\columnwidth]{score_distributions.png}
+  \caption{Distribution of cosine similarity scores for genuine (same-user) and impostor (different-user) pairs. The clear separation enables low-EER authentication.}
   \label{fig:score_dist}
 \end{figure}
 
+
 The large separation (over 14 standard deviations) explains the low EER and high AUC. The impostor distribution has higher variance, reflecting the diversity of typing patterns across different users.
+
 
 \subsection{Embedding Visualization}
 \begin{figure}[t]
   \centering
-  \includegraphics[
-    width=0.8\columnwidth,
-    height=0.45\textheight,
-    keepaspectratio
-  ]{tsne_embeddings.png}
-
-  \vspace{4pt}
-  {\footnotesize
-  \parbox{\columnwidth}{
-  Fig.~\ref{fig:tsne}\quad
-  t-SNE visualization of encoder embeddings. Each color represents a different user. Users form distinct clusters, demonstrating the encoder's discriminative power.
-  }}
+  \includegraphics[width=\columnwidth]{tsne_embeddings.png}
+  \caption{t-SNE visualization of encoder embeddings. Each color represents a different user. Users form distinct clusters, demonstrating the encoder's discriminative power.}
+  \label{fig:tsne}
 \end{figure}
+
 
 
 
@@ -966,8 +962,23 @@ The authors thank the Carnegie Mellon University for creating and maintaining th
 
 \end{thebibliography}
 
-\begin{IEEEbiographynophoto}{Author Name}
-Biography placeholder. Update with actual author biography including education, research interests, and affiliations.
-\end{IEEEbiographynophoto}
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{white bg me.jpg}}]{\textbf{Atul Kumar Mishra}}
+is an undergraduate student in the Computer Science and Engineering (Cyber Security) program at R.V. College of Engineering, Bengaluru, India. His academic interests include computer vision, embedded systems, and cybersecurity. His technical skill set includes Python, C++, Java, OpenCV, PyTorch, Flask, and MQTT, with a strong focus on applying these tools to practical and research-oriented challenges.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{harsh.jpeg}}]{\textbf{Harsh Sagar}}
+is an undergraduate student in the Department of Computer Science and Engineering at R.V. College of Engineering, Bengaluru, India. His interests include distributed systems, backend development, and applied cybersecurity. He is particularly interested in building scalable systems, exploring system performance optimization, and applying secure software engineering practices to real-world applications.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{amit.jpeg}}]{\textbf{Amitansh Gupta}}
+is a cybersecurity enthusiast with a practical skill set in building and securing software systems. He works with the MERN stack and has experience with Python, C++, C, Flask, PHP, and MongoDB. His interests include machine learning, convolutional neural networks, and modern encryption methods, which he applies to understanding and protecting digital systems. He enjoys learning new tools and solving technical problems.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{suma.png}}]{\textbf{Dr.\ Suma B}}
+is currently an academic and researcher with expertise in Artificial Intelligence and Machine Learning. Her primary research focus lies in artificial intelligence, machine learning, and data mining, with allied interests in data hiding techniques and algorithm analysis. Her work emphasizes developing efficient algorithms and intelligent systems for data-driven applications.
+\end{IEEEbiography}
+
+
+
 
 \end{document}
